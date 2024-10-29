@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eş Anlamlı Kelimeler Öğrenme Oyunu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f8ff;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 800px;
+            width: 100%;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress {
+            height: 100%;
+            background-color: #3498db;
+            transition: width 0.3s ease;
+        }
+        .word-pair {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .main-word {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .option {
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 20px;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        .option:hover {
+            background-color: #e8f4fc;
+        }
+        .option.correct {
+            background-color: #2ecc71;
+            color: white;
+            border-color: #27ae60;
+        }
+        .option.wrong {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #c0392b;
+        }
+        .score-board {
+            font-size: 22px;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .next-btn {
+            padding: 12px 24px;
+            font-size: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        .next-btn:hover {
+            background-color: #2980b9;
+        }
+        .word-counter {
+            font-size: 18px;
+            color: #666;
+            margin: 10px 0;
+        }
+        #soundControl {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+    .new-game-btn {
+    padding: 8px 16px;
+    font-size: 16px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: auto;
+    transition: background-color 0.3s;
+}
+
+.new-game-btn:hover {
+    background-color: #2980b9;
+}
+
+/* Score board'u düğmeyi içerecek şekilde güncelliyoruz */
+.score-board {
+    font-size: 22px;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+/* CSS'e eklenecek stiller */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: modalShow 0.3s ease-out;
+}
+
+@keyframes modalShow {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.modal-content h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.modal-content .score-details {
+    font-size: 18px;
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.modal-content .score-details p {
+    margin: 10px 0;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.modal-content .button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.modal-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.modal-button.primary {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.modal-button.secondary {
+    background-color: #3498db;
+    color: white;
+}
+
+.modal-button:hover {
+    transform: scale(1.05);
+}
+/* CSS'e eklenecek animasyon stilleri */
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100%) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: #f00;
+    border-radius: 50%;
+    pointer-events: none;
+    animation: confettiFall 4s ease-out forwards;
+}
+
+.top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+    width: 100%;
+    max-width: 800px;
+}
+
+.score-board {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 22px;
+    padding: 15px 25px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex: 1;
+}
+.score-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timer-board {
+    font-size: 22px;
+    padding: 15px 25px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-align: center;
+    min-width: 150px;
+}
+
+.timer-board.warning {
+    color: #e74c3c;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+    </style>
+</head>
+<body>
+    <!-- Oyun container'ı başlangıçta gizli olacak -->
+    <div class="game-container" style="display: none;">
+        <h1>Eş Anlamlı Kelimeler</h1>
+        <div class="top-info">
+            <div class="score-board">
+                Doğru: <span id="correct">0</span> | 
+                Yanlış: <span id="wrong">0</span>
+                <button class="new-game-btn" onclick="showStartScreen()">Yeni Oyun</button>
+            </div>
+            <div class="timer-board">
+                Süre: <span id="timer">00:00</span>
+            </div>
+        </div>
+        <div class="word-counter">
+            Kelime: <span id="wordCounter">1</span>/50
+        </div>
+        <div class="progress-bar">
+            <div class="progress" id="progress" style="width: 0%"></div>
+        </div>
+        <div class="word-pair">
+            <div class="main-word" id="mainWord"></div>
+            <div class="options" id="options"></div>
+        </div>
+        <button class="next-btn" id="nextBtn" onclick="nextWord()">Sonraki Kelime</button>
+        
+        <div id="soundControl">
+            <label>
+                <input type="checkbox" id="soundToggle" checked> Ses Efektleri
+            </label>
+        </div>
+    </div>
+
+    <!-- Başlangıç ekranı container'ı -->
+    <div id="startScreen" class="start-screen">
+        <h1>Eş Anlamlı Kelimeler Oyunu</h1>
+        
+        <div class="settings-container">
+            <div class="setting-group">
+                <h3>Kelime Aralığı:</h3>
+                <select id="wordRange" class="setting-select">
+                    <option value="1-50">1-50 arası kelimeler</option>
+                    <option value="51-93">51-99 arası kelimeler</option>
+                    <option value="all">Tüm kelimeler</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <h3>Soru Sayısı:</h3>
+                <select id="questionCount" class="setting-select">
+                    <option value="5">5 Soru</option>
+                    <option value="10">10 Soru</option>
+                    <option value="20">20 Soru</option>
+                    <option value="30">30 Soru</option>
+                    <option value="40">40 Soru</option>
+                    <option value="50">50 Soru</option>
+                </select>
+            </div>
+
+            <button id="startGame" class="start-btn">Oyunu Başlat</button>
+        </div>
+
+        <div class="high-scores">
+            <h2>En Yüksek Skorlar</h2>
+            <table id="scoreTable">
+                <thead>
+                    <tr>
+                        <th>Sıra</th>
+                        <th>İsim</th>
+                        <th>Skor</th>
+                        <th>Süre</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+       let wordPairs = [
+    ['Ev', 'Konut'],
+    ['Anı', 'Hatıra'],
+    ['Nehir', 'Irmak'],
+    ['Kalp', 'Yürek'],
+    ['Okul', 'Mektep'],
+    ['Kişi', 'Şahıs'],
+    ['Islak', 'Yaş'],
+    ['Surat', 'Yüz'],
+    ['Sınıf', 'Derslik'],
+    ['Mekan', 'Yer'],
+    ['Doğa', 'Tabiat'],
+    ['Kafa', 'Baş'],
+    ['Sınav', 'İmtihan'],
+    ['Misafir', 'Konuk'],
+    ['Gökyüzü', 'Sema'],
+    ['Düş', 'Rüya'],
+    ['Alfabe', 'Abece'],
+    ['Kırmızı', 'Al'],
+    ['Kıta', 'Anakara'],
+    ['Yaşam', 'Hayat'],
+    ['Öğrenci', 'Talebe'],
+    ['Beyaz', 'Ak'],
+    ['Dünya', 'Yerküre'],
+    ['Zaman', 'Vakit'],
+    ['Öğretmen', 'Muallim'],
+    ['Siyah', 'Kara'],
+    ['Rüzgar', 'Yel'],
+    ['Yıl', 'Sene'],
+    ['Doktor', 'Hekim'],
+    ['Soru', 'Sual'],
+    ['Sonbahar', 'Güz'],
+    ['Armağan', 'Hediye'],
+    ['Esir', 'Tutsak'],
+    ['Veteriner', 'Baytar'],
+    ['Cevap', 'Yanıt'],
+    ['Tane', 'Adet'],
+    ['Deprem', 'Zelzele'],
+    ['Hakim', 'Yargıç'],
+    ['Neşe', 'Sevinç'],
+    ['Yurt', 'Vatan'],
+    ['Büyük', 'İri'],
+    ['Kanun', 'Yasa'],
+    ['Şair', 'Ozan'],
+    ['Öykü', 'Hikaye'],
+    ['Macera', 'Serüven'],
+    ['Özlem', 'Hasret'],
+    ['Duygu', 'His'],
+    ['Uzak', 'Irak'],
+    ['Güç', 'Kuvvet'],
+    ['Ulus', 'Millet'],
+    ['Fakir', 'Yoksul'],
+    ['Zengin', 'Varlıklı'],
+    ['İhtiyar', 'Yaşlı'],
+    ['Davet', 'Çağrı'],
+    ['Önder', 'Lider'],
+    ['Basit', 'Kolay'],
+    ['Anlam', 'Mana'],
+    ['Tanık', 'Şahit'],
+    ['Medeni', 'Uygar'],
+    ['Yanlış', 'Hata'],
+    ['İsim', 'Ad'],
+    ['Nasihat', 'Öğüt'],
+    ['Devrim', 'İnkılap'],
+    ['Dert', 'Üzüntü'],
+    ['Fiil', 'Eylem'],
+    ['Şart', 'Koşul'],
+    ['Buluş', 'İcat'],
+    ['Özgürlük', 'Hürriyet'],
+    ['İlave', 'Ek'],
+    ['Gıda', 'Besin'],
+    ['Fayda', 'Yarar'],
+    ['Sebep', 'Neden'],
+    ['Cümle', 'Tümce'],
+    ['Kelime', 'Sözcük'],
+    ['Kibar', 'Nazik'],
+    ['Eksik', 'Noksan'],
+    ['Hız', 'Sürat'],
+    ['Zayıf', 'Cılız'],
+    ['Sağlık', 'Sıhhat'],
+    ['Savaş', 'Harp-Cenk'],
+    ['Görev', 'Vazife'],
+    ['Acemi', 'Toy'],
+    ['Gayret', 'Çaba'],
+    ['Öneri', 'Teklif'],
+    ['Egzersiz', 'Alıştırma'],
+    ['Akıllı', 'Uslu'],
+    ['Kuşku', 'Şüphe'],
+    ['Amaç', 'Hedef-Gaye'],
+    ['Yetenek', 'Kabiliyet'],
+    ['Problem', 'Sorun'],
+    ['Anıt', 'Abide'],
+    ['Az', 'Kıt'],
+    ['Biçim', 'Şekil'],
+    ['Medeni', 'Uygar'],
+    ['Başvuru', 'Müracaat'],
+    ['Uyarı', 'İkaz'],
+    ['Yemek', 'Aş'],
+    ['Şehir', 'Kent'],
+    ['Asır', 'Yüzyıl']
+];
+
+
+        let currentPairIndex = 0;
+        let score = { correct: 0, wrong: 0 };
+        let hasAnswered = false;
+        let audioContext = null;
+        let gameTimer;
+        let gameStartTime;
+        let finalGameTime = 0; // Oyun bittiğindeki süreyi saklamak için
+        let totalSeconds = 0;
+        let finalGameScore = 0;
+        let finalScoreDetails = null; // Skor detaylarını saklamak için
+
+        let selectedQuestions = [];
+        let tempPool = [];
+
+
+
+// Timer fonksiyonları
+function startTimer() {
+    // Önceki timer varsa temizle
+    if (gameTimer) {
+        clearInterval(gameTimer);
+    }
+
+    // Timer elementinden warning class'ını kaldır
+        const timerElement = document.querySelector('.timer-board');
+    if (timerElement) {
+        timerElement.classList.remove('warning');
+        timerElement.style.color = ''; // Rengi varsayılana döndür
+        timerElement.style.animation = ''; // Animasyonu sıfırla
+    }
+    
+    // Süreyi sıfırla
+    totalSeconds = 0;
+    gameStartTime = Date.now();
+
+    let warningTime = 100; // Varsayılan süre
+    const highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+    
+    if (highScores.length > 0) {
+        // Son skorun süresini al
+        const lastScore = highScores[highScores.length - 1];
+        // "00:00" formatından saniyeye çevir
+        const [minutes, seconds] = lastScore.time.split(':').map(Number);
+        warningTime = (minutes * 60) + seconds;
+    }
+    
+    // Timer'ı başlat
+    gameTimer = setInterval(() => {
+        totalSeconds = Math.floor((Date.now() - gameStartTime) / 1000);
+        updateTimerDisplay();
+        
+        const timerElement = document.querySelector('.timer-board');
+        if (timerElement && totalSeconds >= warningTime) {
+            timerElement.classList.add('warning');
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    if (gameTimer) {
+        clearInterval(gameTimer);
+        gameTimer = null;
+    }
+
+    // Warning class'ını kaldır
+        const timerElement = document.querySelector('.timer-board');
+    if (timerElement) {
+        timerElement.classList.remove('warning');
+        timerElement.style.color = '';
+        timerElement.style.animation = '';
+    }
+}
+
+function updateTimerDisplay() {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    document.getElementById('timer').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Skor hesaplama fonksiyonunu güncelleyelim
+function calculateFinalScore(gameTime) {
+    // Temel puan: Her doğru cevap için 100 puan
+    const basePuan = score.correct * 100;
+    
+    // Doğruluk bonusu: %100 doğruluk için ekstra 500 puan
+    const accuracyPercentage = (score.correct / selectedQuestions.length) * 100;
+    const dogrulukBonusu = accuracyPercentage === 100 ? 500 : 0;
+    
+    // Süre bonusu: Her 40 saniyeden sonra 10 puan düşer
+    const sureBonusu = Math.max(0, 300 - Math.floor(gameTime / 40) * 10);
+    
+    // Toplam skoru hesapla
+    const totalScore = basePuan + dogrulukBonusu + sureBonusu;
+    
+    return {
+        temelPuan: basePuan,
+        dogrulukBonusu: dogrulukBonusu,
+        sureBonusu: sureBonusu,
+        toplamSkor: totalScore
+    };
+}
+        // AudioContext için ses oluşturma fonksiyonları
+        function createCorrectSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        function createWrongSound() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.01);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+        }
+
+        function playSound(isCorrect) {
+            if (!document.getElementById('soundToggle').checked) return;
+            
+            try {
+                if (isCorrect) {
+                    createCorrectSound();
+                } else {
+                    createWrongSound();
+                }
+            } catch (error) {
+                console.log("Ses çalma hatası:", error);
+            }
+        }
+
+// Diziyi karıştıran yardımcı fonksiyon
+function shuffleArray(array) {
+    let currentIndex = array.length;
+    let temporaryValue, randomIndex;
+
+    // Fisher-Yates (Knuth) Shuffle algoritması
+    while (currentIndex !== 0) {
+        // Kalan elementlerden rastgele bir element seç
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex -= 1;
+
+        // Mevcut element ile rastgele seçilen elementi değiştir
+        temporaryValue = array[currentIndex];
+        array[currentIndex] = array[randomIndex];
+        array[randomIndex] = temporaryValue;
+    }
+
+    return array;
+}
+
+function updateProgress() {
+
+    const progressPercentage = ((currentPairIndex) / selectedQuestions.length) * 100;
+    document.querySelector('.progress').style.width = `${progressPercentage}%`;
+}
+
+
+function checkAnswer(selectedWord) {
+   // const currentPair = wordPairs[currentPairIndex];
+    const currentPair = selectedQuestions[currentPairIndex];
+    const isCorrect = selectedWord === currentPair[1];
+    
+    if (isCorrect) {
+        score.correct++;
+        document.getElementById('correct').textContent = score.correct;
+        playSound(true);
+    } else {
+        score.wrong++;
+        document.getElementById('wrong').textContent = score.wrong;
+        playSound(false);
+    }
+    
+    // Seçenekleri devre dışı bırak ve doğru/yanlış göster
+    const options = document.querySelectorAll('.option');
+    options.forEach(option => {
+        option.disabled = true;
+        if (option.textContent === currentPair[1]) {
+            option.classList.add('correct');
+        } else if (option.textContent === selectedWord && !isCorrect) {
+            option.classList.add('wrong');
+        }
+    });
+    
+    // Son soru kontrolü
+    if (currentPairIndex >= selectedQuestions.length - 1) {
+        setTimeout(endGame, 1000);
+    } else {
+        document.getElementById('nextBtn').style.display = 'block';
+    }
+}
+
+
+        function updateScore() {
+            document.getElementById('correct').textContent = score.correct;
+            document.getElementById('wrong').textContent = score.wrong;
+        }
+
+    
+
+
+function nextWord() {
+    if (currentPairIndex < selectedQuestions.length - 1) {
+        currentPairIndex++;
+        
+        // Kelime sayacını güncelle
+        document.getElementById('wordCounter').textContent = currentPairIndex + 1;
+        
+        // Yeni kelimeyi göster
+        displayWord();
+        
+        
+        // Sonraki kelime düğmesini gizle
+        document.getElementById('nextBtn').style.display = 'none';
+    } else {
+        endGame();
+    }
+}
+
+
+// Seçenekleri oluşturan yardımcı fonksiyon ARTIK KULLANUILMIYOR
+function generateOptions(index) {
+    const currentWord = generateOptions[index];
+    const correct = currentWord[1]; // Doğru cevap
+    const allWords = generateOptions.map(pair => pair[1]); // Tüm eş anlamlı kelimeler
+    
+    // Doğru cevabı çıkar ve diğer kelimelerden rastgele 3 tane seç
+    const otherWords = allWords.filter(word => word !== correct);
+    const shuffledWords = shuffleArray([...otherWords]);
+    const wrongOptions = shuffledWords.slice(0, 3);
+    
+    // Tüm seçenekleri birleştir ve karıştır
+    return shuffleArray([correct, ...wrongOptions]);
+}
+
+// Stil eklemeleri
+const additionalStyles = `
+.start-screen {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.settings-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.setting-group {
+    margin: 15px 0;
+}
+
+.setting-select {
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #3498db;
+    width: 200px;
+}
+
+.start-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: transform 0.2s;
+}
+
+.start-btn:hover {
+    transform: scale(1.05);
+}
+
+.high-scores {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.high-scores table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.high-scores th, 
+.high-scores td {
+    padding: 12px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.high-scores th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.high-scores tr:hover {
+    background-color: #f5f5f5;
+}
+
+.high-scores td:nth-child(3), /* Skor sütunu */
+.high-scores td:nth-child(4) { /* Süre sütunu */
+    font-family: monospace;
+    font-size: 1.1em;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f8f9fa;
+}
+
+.victory-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    z-index: 1000;
+}
+
+.victory-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    color: #333;
+}
+
+.victory-content h2 {
+    color: #2ecc71;
+    margin-bottom: 20px;
+}
+
+.player-name-input {
+    padding: 10px;
+    font-size: 16px;
+    margin: 10px 0;
+    width: 200px;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #f00;
+    border-radius: 50%;
+}
+`;
+
+// Yeni ses fonksiyonları
+function createVictorySound() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.type = 'sine';
+    
+    // Zafer fanfarı
+    const now = audioContext.currentTime;
+    oscillator.frequency.setValueAtTime(523.25, now); // C5
+    oscillator.frequency.setValueAtTime(659.25, now + 0.2); // E5
+    oscillator.frequency.setValueAtTime(783.99, now + 0.4); // G5
+    oscillator.frequency.setValueAtTime(1046.50, now + 0.6); // C6
+    
+    gainNode.gain.setValueAtTime(0, now);
+    gainNode.gain.linearRampToValueAtTime(0.5, now + 0.1);
+    gainNode.gain.linearRampToValueAtTime(0, now + 0.8);
+    
+    oscillator.start(now);
+    oscillator.stop(now + 0.8);
+}
+
+// Konfeti efekti
+function createConfetti() {
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+    
+    for (let i = 0; i < 100; i++) {
+        setTimeout(() => {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            // Rastgele başlangıç pozisyonu
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = '0';
+            
+            // Rastgele renk
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            // Rastgele boyut (5px - 15px arası)
+            const size = Math.random() * 10 + 5;
+            confetti.style.width = size + 'px';
+            confetti.style.height = size + 'px';
+            
+            // Rastgele yatay hareket
+            confetti.style.transform = `translateX(${Math.random() * 50 - 25}px)`;
+            
+            document.body.appendChild(confetti);
+            
+            // Animasyon bitince elementi kaldır
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
+        }, Math.random() * 2000); // 2 saniye içinde rastgele zamanlarda oluştur
+    }
+}
+
+// Skor yönetimi
+function saveScore() {
+    const playerName = document.getElementById('playerName').value.trim();
+    
+    if (!playerName) {
+        const input = document.getElementById('playerName');
+        input.style.animation = 'shake 0.5s';
+        setTimeout(() => input.style.animation = '', 500);
+        return;
+    }
+
+    const minutes = Math.floor(finalGameTime / 60);
+    const seconds = finalGameTime % 60;
+    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    const newScore = {
+        name: playerName,
+        score: finalGameScore,
+        time: timeString,
+        date: new Date().toLocaleDateString()
+    };
+
+    let scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+    scores.push(newScore);
+    
+    scores.sort((a, b) => {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        return timeToSeconds(a.time) - timeToSeconds(b.time);
+    });
+    
+    scores = scores.slice(0, 5);
+    localStorage.setItem('highScores', JSON.stringify(scores));
+
+    const isFirstPlace = scores[0].name === playerName && 
+                        scores[0].score === finalGameScore && 
+                        scores[0].time === timeString;
+                        
+    if (isFirstPlace) {
+        createVictorySound();
+        createConfetti();
+    }
+    
+    document.querySelector('.modal-overlay').remove();
+    showStartScreen();
+}
+
+
+function timeToSeconds(timeString) {
+    if (!timeString) return 999999; // Süre yoksa en sona koy
+    const [minutes, seconds] = timeString.split(':').map(Number);
+    return (minutes * 60) + seconds;
+}
+
+function updateScoreTable() {
+    const scores = JSON.parse(localStorage.getItem('highScores') || '[]');
+    const tbody = document.getElementById('scoreTableBody');
+    tbody.innerHTML = '';
+    
+    scores.forEach((score, index) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${score.name}</td>
+            <td>${score.score}</td>
+            <td>${score.time}</td>
+            <td>${score.date}</td>
+        `;
+    });
+}
+
+function saveToHighScores(playerName, score) {
+    let highScores = JSON.parse(localStorage.getItem('highScores') || '[]');
+    
+    const newScore = {
+        name: playerName,
+        score: score,
+        date: new Date().toLocaleDateString()
+    };
+    
+    highScores.push(newScore);
+    highScores.sort((a, b) => b.score - a.score);
+    highScores = highScores.slice(0, 10); // Sadece en yüksek 10 skoru tut
+    
+    localStorage.setItem('highScores', JSON.stringify(highScores));
+    
+    return highScores[0].score === score && highScores[0].name === playerName;
+}
+
+function showVictoryScreen(score) {
+    const victoryScreen = document.createElement('div');
+    victoryScreen.className = 'victory-screen';
+    victoryScreen.innerHTML = `
+        <div class="victory-content">
+            <h2>Tebrikler!</h2>
+            <p>Skorun: ${score}</p>
+            <input type="text" class="player-name-input" placeholder="İsminizi girin" maxlength="20">
+            <button class="start-btn" onclick="saveAndShowHighScores(this, ${score})">Skoru Kaydet</button>
+        </div>
+    `;
+    document.body.appendChild(victoryScreen);
+}
+
+const shakeAnimation = `
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+`;
+
+const style = document.createElement('style');
+style.textContent = shakeAnimation;
+document.head.appendChild(style);
+
+function saveAndShowHighScores(button, score) {
+    const nameInput = button.previousElementSibling;
+    const playerName = nameInput.value.trim();
+    
+    if (!playerName) {
+        alert('Lütfen isminizi girin!');
+        return;
+    }
+    
+    const isFirstPlace = saveScore(playerName, score);
+    if (isFirstPlace) {
+        createVictorySound();
+        createConfetti();
+    }
+    
+    updateScoreTable();
+    document.querySelector('.victory-screen').remove();
+    showStartScreen();
+}
+
+// initializeGame fonksiyonunu güncelliyoruz
+function initializeGame() {
+    const range = document.getElementById('wordRange').value;
+    const questionCount = parseInt(document.getElementById('questionCount').value);
+    let availableWords = [];
+
+    
+    // Orijinal diziyi korumak için kopyasını al
+    const originalPairs = [...wordPairs];
+    
+    // Seçilen aralığa göre soru havuzunu belirle
+     availableWords;
+    if (range === '1-50') {
+        availableWords = originalPairs.slice(0, 50);
+      //  console.log('1-50 arası kelimeler seçildi:', availableWords);
+    } else if (range === '51-99') {
+        availableWords = originalPairs.slice((originalPairs.length+1)-50);
+       // console.log('51-93 arası kelimeler seçildi:', availableWords);
+    } else {
+        availableWords = originalPairs;
+       // console.log('Tüm kelimeler seçildi:', availableWords);
+    }
+    
+    // İstenilen sayıda soruyu rastgele seç
+    
+    tempPool = shuffleArray([...availableWords]); // Seçim için geçici havuz
+
+   // console.log('Seçim için geçici havuz:', tempPool);
+    
+    for (let i = 0; i < questionCount && tempPool.length > 0; i++) {
+        const randomIndex = Math.floor(Math.random() * tempPool.length);
+        selectedQuestions.push(tempPool[randomIndex]);
+       tempPool.splice(randomIndex, 1); // Seçilen soruyu havuzdan çıkar
+    }
+    
+    //console.log("seçilen sorular : ",selectedQuestions);
+    // Seçilen soruları aktif soru listesine ata
+    
+    
+    // Ekranları değiştir
+    document.getElementById('startScreen').style.display = 'none';
+    document.querySelector('.game-container').style.display = 'block';
+    
+    // Timer'ı sıfırla ve başlat
+    document.getElementById('timer').textContent = '00:00';
+    
+    // Oyun değişkenlerini sıfırla
+    score = { correct: 0, wrong: 0 };
+    totalSeconds = 0;
+    finalGameScore = 0;
+    currentPairIndex = 0;
+    currentPair = '';
+    //wordPairs = originalPairs;
+    
+    // Timer'ı başlat
+    startTimer();
+    
+    // Skorları sıfırla
+    document.getElementById('correct').textContent = '0';
+    document.getElementById('wrong').textContent = '0';
+    
+    // Toplam soru sayısını güncelle
+    document.querySelector('.word-counter').innerHTML = 
+        `Kelime: <span id="wordCounter">1</span>/${questionCount}`;
+    
+    // İlk soruyu göster
+    displayWord();
+}
+
+function displayWord() {
+    updateProgress();
+    //console.log('Seçilen sorular:', selectedQuestions);
+    
+    const currentPair = selectedQuestions[currentPairIndex];
+
+    // Ana kelimeyi göster
+    document.getElementById('mainWord').textContent = currentPair[0];
+    
+    // Seçenekleri oluştur
+    const optionsContainer = document.getElementById('options');
+    optionsContainer.innerHTML = '';
+    
+    // Doğru cevap
+    const correctAnswer = currentPair[1];
+
+
+    // Yanlış cevap havuzu oluştur (doğru cevap hariç)
+//let wrongAnswerPool = tempPool
+//.map(pair => pair[1].split(',')) // Virgülle ayrılmış cevapları ayır
+//.flat() // İç içe diziyi düzleştir
+//.filter(answer => answer !== correctAnswer); // Doğru cevabı çıkar
+
+   let wrongAnswerPool = tempPool
+    .flatMap(pair => [
+        ...pair[0].split(','), // Birinci elemanları al
+        ...pair[1].split(',')  // İkinci elemanları al
+    ])
+    .map(answer => answer.trim()) // Boşlukları temizle
+    .filter(answer => answer !== correctAnswer); // Doğru cevabı çıkar
+
+ //   if (window.selectedRange === '1-50') {
+ //       wrongAnswerPool = wordPairs.slice(0, 50).map(pair => pair[1]);
+ //   } else if (window.selectedRange === '51-93') {
+  //      wrongAnswerPool = wordPairs.slice(50).map(pair => pair[1]);
+//    } else {
+ //       wrongAnswerPool = wordPairs.map(pair => pair[1]);
+//  }
+    
+    // Doğru cevabı havuzdan çıkar
+ //   wrongAnswerPool = wrongAnswerPool.filter(answer => answer !== correctAnswer);
+
+ //console.log("yanlış cevap havuzu :" , wrongAnswerPool)
+
+// Rastgele 3 yanlış cevap seç
+    let wrongAnswers = [];
+    while (wrongAnswers.length < 3 && wrongAnswerPool.length > 0) {
+        const randomIndex = Math.floor(Math.random() * wrongAnswerPool.length);
+        wrongAnswers.push(wrongAnswerPool[randomIndex].trim()); // Boşlukları temizle
+        wrongAnswerPool.splice(randomIndex, 1);
+    }
+
+    //console.log('Yanlış cevaplar :', wrongAnswers);
+    
+    // Tüm seçenekleri birleştir ve karıştır
+    let allOptions = [correctAnswer, ...wrongAnswers];
+
+    
+    // Seçenekleri karıştır
+    for (let i = allOptions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+    }
+    
+    // Seçenekleri ekrana ekle
+    allOptions.forEach(option => {
+        const button = document.createElement('button');
+        button.className = 'option';
+        button.textContent = option;
+        button.onclick = () => checkAnswer(option);
+        optionsContainer.appendChild(button);
+    });
+}
+
+    // showStartScreen fonksiyonunu güncelliyoruz
+function showStartScreen() {
+    // Timer'ı durdur
+    stopTimer();
+
+    // Warning class'ını kaldır
+        const timerElement = document.querySelector('.timer-board');
+    if (timerElement) {
+        timerElement.classList.remove('warning');
+        timerElement.style.color = '';
+        timerElement.style.animation = '';
+    }
+
+    // Ekranları değiştir
+    document.querySelector('.game-container').style.display = 'none';
+    document.getElementById('startScreen').style.display = 'block';
+    
+    // Skor tablosunu güncelle
+    updateScoreTable();
+    selectedQuestions = [];
+    
+}
+
+        // Oyun bitişini güncelliyoruz
+        function endGame() {
+    // Timer'ı durdur
+    stopTimer();
+
+    // Oyun bittiği andaki süreyi sakla
+    finalGameTime = totalSeconds;
+    
+    // Skor detaylarını hesapla ve sakla
+    finalScoreDetails = calculateFinalScore(finalGameTime);
+    finalGameScore = finalScoreDetails.toplamSkor;
+    
+    // Modal'ı göster
+    showScoreModal();
+}
+
+function showScoreModal() {
+    const minutes = Math.floor(finalGameTime / 60);
+    const seconds = finalGameTime % 60;
+    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>Oyun Bitti!</h2>
+            <div class="score-details">
+                <p>Toplam Soru: ${selectedQuestions.length}</p>
+                <p>Doğru Sayısı: ${score.correct}</p>
+                <p>Yanlış Sayısı: ${score.wrong}</p>
+                <p>Geçen Süre: ${timeString}</p>
+                <p>Doğruluk Oranı: %${Math.round((score.correct / selectedQuestions.length) * 100)}</p>
+                <p class="final-score">Final Skor: ${finalGameScore}</p>
+                <div class="score-breakdown">
+                    <p>Temel Puan: ${finalScoreDetails.temelPuan}</p>
+                    <p>Doğruluk Bonusu: +${finalScoreDetails.dogrulukBonusu}</p>
+                    <p>Süre Bonusu: +${finalScoreDetails.sureBonusu}</p>
+                </div>
+            </div>
+            <input type="text" id="playerName" placeholder="İsminizi girin" maxlength="20">
+            <div class="button-group">
+                <button class="modal-button primary" onclick="saveScore()">Skoru Kaydet</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+
+
+        // Oyunu başlat
+        document.addEventListener('DOMContentLoaded', function() {
+            showStartScreen();
+            document.getElementById('startGame').addEventListener('click', initializeGame);
+        });
+
+
+// Stil ekle
+const styleSheet = document.createElement('style');
+styleSheet.textContent = additionalStyles;
+document.head.appendChild(styleSheet);
+
+// Oyunu başlat
+showStartScreen();
+
+const modalStyles = `
+.final-score {
+    font-size: 24px;
+    font-weight: bold;
+    color: #2ecc71;
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px solid #2ecc71;
+    border-radius: 5px;
+}
+.score-breakdown {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.score-breakdown p {
+    margin: 5px 0;
+    color: #666;
+}
+`;
+
+    </script>
+</body>
+</html>
